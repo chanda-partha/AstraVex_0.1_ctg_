@@ -1,4 +1,4 @@
-# 🚀 AstraVex — NASA Mission Explorer
+# 🚀 AstraVex (NASA Mission Explorer)
 
 > **"Explore. Discover. Learn."**  
 > *Official Competition Prototype for the NASA Space Apps Challenge 2026*  
@@ -8,7 +8,7 @@
 
 ## 🌟 1. Project Overview
 
-**AstraVex (NASA Mission Explorer)** is an immersive 3D web application designed to introduce school-age space enthusiasts to the hardware and science NASA has left across the solar system (Moon, Mars, and deep space).
+**NASA MISSION EXPLORER** is an immersive 3D web application designed to introduce school-age space enthusiasts to the hardware and science NASA has left across the solar system (Moon, Mars, and deep space).
 
 Rather than reading flat articles, users enter a cinematic 3D space environment where they launch from Earth, travel through interplanetary space, land on alien terrain, and physically explore 3D NASA rovers, landers, and scientific instruments grounded in live NASA Open Data APIs.
 
@@ -125,3 +125,4 @@ Open your browser to: **`http://localhost:3000`**
 
 ## 📄 License
 Public Domain / NASA Space Apps Challenge 2026 Submission.
+

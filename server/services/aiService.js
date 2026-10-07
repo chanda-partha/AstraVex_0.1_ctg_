@@ -66,8 +66,8 @@ INSTRUCTIONS:
     // Attempt 1: Official Google Generative AI SDK
     try {
       const genAI = new GoogleGenerativeAI(geminiKey);
-      const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"];
-      
+      const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"];
+
       for (const modelName of modelsToTry) {
         try {
           const model = genAI.getGenerativeModel({ model: modelName });
@@ -89,7 +89,7 @@ INSTRUCTIONS:
     }
 
     // Attempt 2: Direct REST API Fallback
-    const restModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"];
+    const restModels = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"];
     for (const m of restModels) {
       try {
         const controller = new AbortController();
@@ -110,7 +110,7 @@ INSTRUCTIONS:
             return { answer: replyText.trim(), source: `Google Gemini REST API (${m})` };
           }
         }
-      } catch (e) {}
+      } catch (e) { }
     }
   }
 
@@ -227,7 +227,7 @@ async function resolveMultiFieldKnowledge(userQuery, dest, mission, hardware) {
         };
       }
     }
-  } catch (e) {}
+  } catch (e) { }
 
   // Keyword Extraction & OpenSearch Fuzzy Entity Resolution
   const stopWords = new Set(['when', 'what', 'who', 'where', 'how', 'why', 'was', 'were', 'is', 'are', 'did', 'does', 'do', 'the', 'a', 'an', 'in', 'on', 'at', 'for', 'to', 'of', 'and', 'established', 'created', 'founded', 'born']);
@@ -254,7 +254,7 @@ async function resolveMultiFieldKnowledge(userQuery, dest, mission, hardware) {
           }
         }
       }
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // -------------------------------------------------------------
