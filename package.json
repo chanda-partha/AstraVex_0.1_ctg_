@@ -1,0 +1,15 @@
+{
+  "name": "nasa-mission-explorer-root",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "NASA Mission Explorer — Interactive 3D Educational Exploration Platform for NASA Space Apps Challenge 2026",
+  "scripts": {
+    "dev": "npm --prefix client run dev",
+    "client": "npm --prefix client run dev",
+    "server": "npm --prefix server run dev",
+    "build": "npm --prefix client run build",
+    "preview": "npm --prefix client run preview",
+    "start": "node server/server.js",
+    "test": "node tests/verify_nasa_fallbacks.test.js"
+  }
+}
