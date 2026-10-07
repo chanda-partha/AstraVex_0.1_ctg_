@@ -66,7 +66,7 @@ INSTRUCTIONS:
     // Attempt 1: Official Google Generative AI SDK
     try {
       const genAI = new GoogleGenerativeAI(geminiKey);
-      const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"];
+      const modelsToTry = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"];
       
       for (const modelName of modelsToTry) {
         try {
@@ -89,7 +89,7 @@ INSTRUCTIONS:
     }
 
     // Attempt 2: Direct REST API Fallback
-    const restModels = ["gemini-1.5-flash", "gemini-2.0-flash", "gemini-1.5-pro"];
+    const restModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"];
     for (const m of restModels) {
       try {
         const controller = new AbortController();
