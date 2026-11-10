@@ -69,6 +69,63 @@ export const ElonAssistant: React.FC<ElonAssistantProps> = ({
   const dockRef = useRef<HTMLDivElement>(null);
   const dockDragData = useRef<{ startX: number; startY: number; initX: number; initY: number } | null>(null);
 
+  // Draggable Name Identification Modal Position State
+  const [nameModalPos, setNameModalPos] = useState<{ x: number; y: number } | null>(null);
+  const [isDraggingNameModal, setIsDraggingNameModal] = useState<boolean>(false);
+  const nameModalRef = useRef<HTMLDivElement>(null);
+  const nameModalDragData = useRef<{ startX: number; startY: number; initX: number; initY: number } | null>(null);
+
+  // Pointer Handlers: Move Name Modal
+  const handleNameModalPointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0) return;
+    const target = e.target as HTMLElement;
+    if (target.closest('input, button, textarea, a, select')) return;
+
+    const el = nameModalRef.current;
+    if (!el) return;
+
+    const rect = el.getBoundingClientRect();
+    const currentX = nameModalPos ? nameModalPos.x : rect.left;
+    const currentY = nameModalPos ? nameModalPos.y : rect.top;
+
+    nameModalDragData.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initX: currentX,
+      initY: currentY,
+    };
+
+    setIsDraggingNameModal(true);
+    try {
+      target.setPointerCapture(e.pointerId);
+    } catch (_) {}
+  };
+
+  const handleNameModalPointerMove = (e: React.PointerEvent) => {
+    if (!isDraggingNameModal || !nameModalDragData.current || !nameModalRef.current) return;
+
+    const deltaX = e.clientX - nameModalDragData.current.startX;
+    const deltaY = e.clientY - nameModalDragData.current.startY;
+
+    const rect = nameModalRef.current.getBoundingClientRect();
+    const maxX = Math.max(12, window.innerWidth - rect.width - 12);
+    const maxY = Math.max(12, window.innerHeight - rect.height - 12);
+
+    const nextX = Math.max(12, Math.min(maxX, nameModalDragData.current.initX + deltaX));
+    const nextY = Math.max(12, Math.min(maxY, nameModalDragData.current.initY + deltaY));
+
+    setNameModalPos({ x: nextX, y: nextY });
+  };
+
+  const handleNameModalPointerUp = (e: React.PointerEvent) => {
+    if (!isDraggingNameModal) return;
+    setIsDraggingNameModal(false);
+    nameModalDragData.current = null;
+    try {
+      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch (_) {}
+  };
+
   // Pointer Handlers: Move HUD Card
   const handleHudPointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0) return;
@@ -171,6 +228,70 @@ export const ElonAssistant: React.FC<ElonAssistantProps> = ({
     } catch (_) {}
   };
 
+  // Draggable Restore Pill State
+  const [pillPos, setPillPos] = useState<{ x: number; y: number } | null>(null);
+  const [isDraggingPill, setIsDraggingPill] = useState<boolean>(false);
+  const pillRef = useRef<HTMLDivElement>(null);
+  const pillDragData = useRef<{ startX: number; startY: number; initX: number; initY: number; hasMoved: boolean } | null>(null);
+
+  const handlePillPointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0) return;
+    const el = pillRef.current;
+    if (!el) return;
+
+    const rect = el.getBoundingClientRect();
+    const currentX = pillPos ? pillPos.x : rect.left;
+    const currentY = pillPos ? pillPos.y : rect.top;
+
+    pillDragData.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initX: currentX,
+      initY: currentY,
+      hasMoved: false,
+    };
+
+    setIsDraggingPill(true);
+    try {
+      (e.target as HTMLElement).setPointerCapture(e.pointerId);
+    } catch (_) {}
+  };
+
+  const handlePillPointerMove = (e: React.PointerEvent) => {
+    if (!isDraggingPill || !pillDragData.current || !pillRef.current) return;
+
+    const deltaX = e.clientX - pillDragData.current.startX;
+    const deltaY = e.clientY - pillDragData.current.startY;
+
+    if (Math.hypot(deltaX, deltaY) > 4) {
+      pillDragData.current.hasMoved = true;
+    }
+
+    const rect = pillRef.current.getBoundingClientRect();
+    const maxX = Math.max(12, window.innerWidth - rect.width - 12);
+    const maxY = Math.max(12, window.innerHeight - rect.height - 12);
+
+    const nextX = Math.max(12, Math.min(maxX, pillDragData.current.initX + deltaX));
+    const nextY = Math.max(12, Math.min(maxY, pillDragData.current.initY + deltaY));
+
+    setPillPos({ x: nextX, y: nextY });
+  };
+
+  const handlePillPointerUp = (e: React.PointerEvent) => {
+    if (!isDraggingPill) return;
+    const didMove = pillDragData.current?.hasMoved;
+    setIsDraggingPill(false);
+    pillDragData.current = null;
+    try {
+      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch (_) {}
+
+    // If it was a simple click without dragging, unhide HUD
+    if (!didMove) {
+      setIsHudHidden(false);
+    }
+  };
+
   // Viewport resize guard to keep positions on-screen
   useEffect(() => {
     const handleResize = () => {
@@ -186,10 +307,22 @@ export const ElonAssistant: React.FC<ElonAssistantProps> = ({
         const maxY = Math.max(12, window.innerHeight - rect.height - 12);
         setDockPos((prev) => prev ? { x: Math.min(prev.x, maxX), y: Math.min(prev.y, maxY) } : null);
       }
+      if (nameModalPos && nameModalRef.current) {
+        const rect = nameModalRef.current.getBoundingClientRect();
+        const maxX = Math.max(12, window.innerWidth - rect.width - 12);
+        const maxY = Math.max(12, window.innerHeight - rect.height - 12);
+        setNameModalPos((prev) => prev ? { x: Math.min(prev.x, maxX), y: Math.min(prev.y, maxY) } : null);
+      }
+      if (pillPos && pillRef.current) {
+        const rect = pillRef.current.getBoundingClientRect();
+        const maxX = Math.max(12, window.innerWidth - rect.width - 12);
+        const maxY = Math.max(12, window.innerHeight - rect.height - 12);
+        setPillPos((prev) => prev ? { x: Math.min(prev.x, maxX), y: Math.min(prev.y, maxY) } : null);
+      }
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [hudPos, dockPos]);
+  }, [hudPos, dockPos, nameModalPos, pillPos]);
 
   // Unhide automatically when a new stage transition begins
   useEffect(() => {
@@ -255,10 +388,43 @@ export const ElonAssistant: React.FC<ElonAssistantProps> = ({
       {/* 1. STEP 2 MODAL: FUTURISTIC NAME IDENTIFICATION POPUP                 */}
       {/* ═════════════════════════════════════════════════════════════════════ */}
       {elonState.isNamePopupOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md select-none animate-fade-in">
-          <div className="relative w-full max-w-md elon-modal-glass p-6 sm:p-8 rounded-3xl space-y-6 text-center shadow-2xl overflow-hidden border border-cyan-400/30">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md select-none animate-fade-in pointer-events-auto">
+          <div
+            ref={nameModalRef}
+            style={nameModalPos ? {
+              left: `${nameModalPos.x}px`,
+              top: `${nameModalPos.y}px`,
+              position: 'fixed',
+              transform: 'none',
+              margin: 0
+            } : undefined}
+            onPointerDown={handleNameModalPointerDown}
+            onPointerMove={handleNameModalPointerMove}
+            onPointerUp={handleNameModalPointerUp}
+            onDoubleClick={() => setNameModalPos(null)}
+            className="relative w-full max-w-md elon-modal-glass p-6 sm:p-8 rounded-3xl space-y-5 text-center shadow-2xl overflow-hidden border border-cyan-400/30 cursor-grab active:cursor-grabbing"
+            title="Click and drag with mouse pointer to move modal anywhere (double-click to reset position)"
+          >
             {/* Holographic Top Accent Rim */}
             <div className="card-iridescent-rim absolute top-0 left-0 right-0 h-[2px] pointer-events-none" />
+
+            {/* Top Drag Indicator & Reset */}
+            <div className="flex items-center justify-between text-[10px] font-mono text-cyan-400/80 -mt-2 pb-1">
+              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-white/[0.04] border border-cyan-400/25">
+                <GripHorizontal className="w-3.5 h-3.5 text-cyan-400" />
+                <span>DRAG TO MOVE</span>
+              </div>
+              {nameModalPos && (
+                <button
+                  type="button"
+                  onClick={() => setNameModalPos(null)}
+                  className="text-slate-400 hover:text-cyan-300 text-[10px] font-mono transition-colors cursor-pointer"
+                  title="Reset to center position"
+                >
+                  RESET POS
+                </button>
+              )}
+            </div>
 
             {/* Glowing Spacecraft AI Icon */}
             <div className="mx-auto w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/30 border border-cyan-400/50 flex items-center justify-center shadow-[0_0_25px_rgba(56,189,248,0.4)] elon-orb-active">
@@ -461,23 +627,39 @@ export const ElonAssistant: React.FC<ElonAssistantProps> = ({
         </div>
       )}
 
-      {/* 2B. RESTORE PILL (WHEN HUD IS HIDDEN) */}
+      {/* 2B. DRAGGABLE RESTORE PILL (WHEN HUD IS HIDDEN) */}
       {elonState.subtitles && !elonState.isNamePopupOpen && isHudHidden && (
-        <div className="fixed bottom-24 sm:bottom-20 left-1/2 -translate-x-1/2 z-30 pointer-events-auto select-none animate-fade-in">
-          <button
-            onClick={() => setIsHudHidden(false)}
-            className="group px-4 py-2.5 rounded-full bg-[#050918]/90 hover:bg-[#071128] border border-cyan-400/40 hover:border-cyan-300 text-cyan-200 hover:text-white shadow-[0_0_25px_rgba(56,189,248,0.35)] backdrop-blur-xl flex items-center gap-2.5 text-xs font-orbitron font-semibold tracking-wider cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95"
-            title="Show mission briefing & subtitles"
+        <div
+          ref={pillRef}
+          style={pillPos ? {
+            left: `${pillPos.x}px`,
+            top: `${pillPos.y}px`,
+            bottom: 'auto',
+            transform: 'none',
+            position: 'fixed'
+          } : undefined}
+          onPointerDown={handlePillPointerDown}
+          onPointerMove={handlePillPointerMove}
+          onPointerUp={handlePillPointerUp}
+          onDoubleClick={() => setPillPos(null)}
+          className={`fixed z-30 pointer-events-auto select-none animate-fade-in cursor-grab active:cursor-grabbing ${
+            pillPos ? '' : 'bottom-24 sm:bottom-20 left-1/2 -translate-x-1/2'
+          }`}
+          title="Click to show mission briefing · Drag with mouse pointer to move anywhere (double-click to reset)"
+        >
+          <div
+            className="group px-4 py-2.5 rounded-full bg-[#050918]/90 hover:bg-[#071128] border border-cyan-400/40 hover:border-cyan-300 text-cyan-200 hover:text-white shadow-[0_0_25px_rgba(56,189,248,0.35)] backdrop-blur-xl flex items-center gap-2.5 text-xs font-orbitron font-semibold tracking-wider transition-all duration-200 hover:scale-105 active:scale-95"
           >
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(56,189,248,0.8)]" />
-            <Eye className="w-3.5 h-3.5 text-cyan-300 group-hover:scale-110 transition-transform" />
-            <span>SHOW MISSION BRIEFING</span>
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(56,189,248,0.8)] pointer-events-none" />
+            <Eye className="w-3.5 h-3.5 text-cyan-300 group-hover:scale-110 transition-transform pointer-events-none" />
+            <span className="pointer-events-none">SHOW MISSION BRIEFING</span>
             {elonState.showMissionOptions && (
-              <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-[10px] font-mono text-cyan-300 border border-cyan-400/30">
+              <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-[10px] font-mono text-cyan-300 border border-cyan-400/30 pointer-events-none">
                 MISSIONS
               </span>
             )}
-          </button>
+            <GripHorizontal className="w-3.5 h-3.5 text-cyan-400/60 pointer-events-none ml-0.5" />
+          </div>
         </div>
       )}
 
