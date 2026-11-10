@@ -12,6 +12,8 @@ import { StoryModalSkeleton } from './components/skeleton/StoryModalSkeleton';
 import { QuizModalSkeleton } from './components/skeleton/QuizModalSkeleton';
 import { HardwareInspectSkeleton } from './components/skeleton/HardwareInspectSkeleton';
 import { DataRegistrySkeleton } from './components/skeleton/DataRegistrySkeleton';
+import { ElonAssistant } from './elon/ElonAssistant';
+import { elonConversation } from './elon/ElonConversation';
 
 // Code-split heavy secondary routes & modals for instant initial bundle delivery
 const EarthLaunchPage = lazy(() => import('./pages/EarthLaunchPage'));
@@ -188,6 +190,21 @@ export const App: React.FC = () => {
     }
   };
 
+  // Safe ELON AI Mission Starters (Controlled Function Calling)
+  const handleStartMoonMission = () => {
+    handleSwitchDestination('Moon');
+    handleSelectDestination('Moon', 'apollo11', true);
+  };
+
+  const handleStartMarsMission = () => {
+    handleSwitchDestination('Mars');
+    handleSelectDestination('Mars', 'perseverance', true);
+  };
+
+  const handleOpenDestinations = () => {
+    setScreen('destination');
+  };
+
   return (
     <div className="min-h-screen bg-space-900 text-slate-100 font-sans relative overflow-x-hidden">
       
@@ -204,6 +221,7 @@ export const App: React.FC = () => {
         onToggleAiChat={() => setIsAiChatOpen(!isAiChatOpen)}
         onOpenRegistry={() => setIsRegistryOpen(true)}
         onOpenSimulators={() => setIsSimulatorsOpen(true)}
+        onEngageElon={() => elonConversation.startWelcome()}
       />
 
       {/* RENDER SCREENS BASED ON JOURNEY FLOW */}
@@ -344,6 +362,14 @@ export const App: React.FC = () => {
           />
         </Suspense>
       )}
+
+      {/* ELON — AI Space Mission Guide & Cinematic Audio Dock */}
+      <ElonAssistant
+        onStartMoonMission={handleStartMoonMission}
+        onStartMarsMission={handleStartMarsMission}
+        onOpenDestinations={handleOpenDestinations}
+        currentDestination={destination}
+      />
 
     </div>
   );

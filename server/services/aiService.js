@@ -346,3 +346,149 @@ export async function generateQuiz(nasaData) {
     questions: questions
   };
 }
+
+// -------------------------------------------------------------
+// 🛸 ELON — AI Space Mission Guide Engine
+// -------------------------------------------------------------
+export async function answerElon(userMessage, visitorName = "Explorer", stage = "general", contextData = null, clientApiKey = null) {
+  const cleanMsg = (userMessage || "").trim();
+  const safeName = (visitorName || "Explorer").trim();
+  const dest = contextData?.destination || "Mars";
+  const mission = contextData?.mission;
+  const hardware = contextData?.hardware;
+
+  // Dedicated ELON System Prompt
+  const elonSystemPrompt = `You are ELON, the official intelligent AI spacecraft mission guide onboard ASTRAVEX (NASA Mission Explorer).
+Personality:
+- Intelligent, confident, calm, friendly, and professional.
+- Futuristic spacecraft AI speaking in natural conversational English with cinematic Hollywood narration.
+- Knowledgeable about astronomy, NASA missions, and planetary science (Moon, Mars, Deep Space).
+- You address the explorer respectfully by their name: "${safeName}".
+- Strictly adhere to verified NASA scientific discoveries; never invent false discoveries.
+- Keep responses concise, engaging, and suitable for spoken voice delivery (2 to 4 sentences).
+
+Active Context:
+- Explorer Name: ${safeName}
+- Current Stage: ${stage}
+- Destination: ${dest}
+- Active Mission: ${mission?.name || 'Perseverance Rover'}
+- Active Hardware: ${hardware?.name || 'SuperCam Spectrometer'}`;
+
+  // 1. Check Gemini Key from request body or environment
+  const geminiKey = (clientApiKey || process.env.GEMINI_API_KEY || "").trim();
+
+  if (geminiKey && geminiKey.length > 15) {
+    try {
+      const genAI = new GoogleGenerativeAI(geminiKey);
+      const modelsToTry = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"];
+
+      for (const modelName of modelsToTry) {
+        try {
+          const model = genAI.getGenerativeModel({ model: modelName });
+          const prompt = `${elonSystemPrompt}\n\nUSER INPUT: "${cleanMsg}"\nRespond as ELON in 2-3 cinematic sentences addressing ${safeName}:`;
+          const result = await model.generateContent(prompt);
+          const responseText = result.response?.text();
+          if (responseText && responseText.trim().length > 5) {
+            return {
+              reply: responseText.trim(),
+              source: `ELON AI (Gemini ${modelName})`
+            };
+          }
+        } catch (mErr) {
+          // Fall through to next model
+        }
+      }
+    } catch (sdkErr) {
+      // Fall through to REST
+    }
+
+    // Direct REST API Attempt
+    const restModels = ["gemini-1.5-flash", "gemini-2.0-flash"];
+    for (const m of restModels) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${geminiKey}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: `${elonSystemPrompt}\n\nUSER INPUT: "${cleanMsg}"` }] }]
+          })
+        });
+        clearTimeout(timeoutId);
+        if (res.ok) {
+          const data = await res.json();
+          const replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (replyText && replyText.trim().length > 5) {
+            return { reply: replyText.trim(), source: `ELON AI (Gemini REST ${m})` };
+          }
+        }
+      } catch (_) {}
+    }
+  }
+
+  // 2. High-Fidelity Grounded Fallback Engine for ELON Stages
+  if (stage === 'welcome') {
+    return {
+      reply: "Greetings, explorer. I am ELON, your artificial intelligence mission guide. Welcome to ASTRAVEX. Beyond the boundaries of Earth lies an endless universe filled with mysteries waiting to be discovered. Your journey beyond Earth begins here.",
+      source: "ELON Core Subsystem"
+    };
+  }
+
+  if (stage === 'ask_name') {
+    return {
+      reply: "Before we begin our journey, may I know your name?",
+      source: "ELON Core Subsystem"
+    };
+  }
+
+  if (stage === 'greeting') {
+    return {
+      reply: `Hello, ${safeName}! Welcome aboard. It's wonderful to have you here. How are you today? I hope you're doing great. The universe is full of extraordinary mysteries waiting to be discovered. From the ancient craters of our Moon to the vast landscapes of Mars, there is so much waiting for us to explore. Are you ready for an extraordinary journey?`,
+      source: "ELON Core Subsystem"
+    };
+  }
+
+  if (stage === 'space_intro') {
+    return {
+      reply: `Space exploration represents humanity's greatest endeavor. Through ASTRAVEX, you have direct access to verified NASA missions—from Apollo's historic lunar footprints to the nuclear-powered Perseverance rover drilling in Jezero Crater. Every rover, lander, and spectrometer here is modeled directly on real scientific hardware.`,
+      source: "ELON Core Subsystem"
+    };
+  }
+
+  if (stage === 'mission_brief') {
+    return {
+      reply: `Commander ${safeName}, your mission briefing is ready. Where shall we travel today? Would you like to explore the Moon, discover the mysteries of Mars, or explore the Solar System?`,
+      source: "ELON Core Subsystem"
+    };
+  }
+
+  // General Questions to ELON
+  const lower = cleanMsg.toLowerCase();
+  if (lower.includes('moon')) {
+    return {
+      reply: `${safeName}, the Moon is Earth's only natural satellite, situated 384,400 kilometers away. From Apollo 11's Tranquility Base to the upcoming Artemis III crewed polar landing, our lunar exploration reveals the deep volcanic history of our solar system.`,
+      source: "ELON Telemetry Guide"
+    };
+  }
+
+  if (lower.includes('mars') || lower.includes('perseverance')) {
+    return {
+      reply: `${safeName}, Mars is an extraordinary world of red iron oxide dust and ancient river deltas. NASA's Perseverance rover and Ingenuity helicopter are actively searching for signs of ancient microbial life in Jezero Crater as we speak!`,
+      source: "ELON Telemetry Guide"
+    };
+  }
+
+  if (lower.includes('who are you') || lower.includes('what are you') || lower.includes('elon')) {
+    return {
+      reply: `I am ELON, the onboard artificial intelligence flight director of ASTRAVEX. My mission is to assist and guide you, ${safeName}, as we navigate real NASA hardware and interplanetary scientific data across space.`,
+      source: "ELON Telemetry Guide"
+    };
+  }
+
+  return {
+    reply: `Commander ${safeName}, telemetry received. ASTRAVEX is standing by for your commands. Select a destination or ask any question about our active spacecraft and planetary science.`,
+    source: "ELON Telemetry Guide"
+  };
+}
