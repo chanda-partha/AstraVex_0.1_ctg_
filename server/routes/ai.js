@@ -1,5 +1,5 @@
 import express from 'express';
-import { generateStory, answerChat, generateQuiz } from '../services/aiService.js';
+import { generateStory, answerChat, generateQuiz, answerElon } from '../services/aiService.js';
 import { resolveNasaData } from '../services/nasaDataResolver.js';
 
 const router = express.Router();
@@ -42,6 +42,18 @@ router.post('/quiz', async (req, res) => {
   } catch (error) {
     console.error("AI Quiz generation error:", error);
     res.status(500).json({ error: "Failed to generate AI quiz", details: error.message });
+  }
+});
+
+// ELON - AI Space Mission Guide Conversational Endpoint
+router.post('/elon', async (req, res) => {
+  try {
+    const { message, visitorName, stage, contextData, apiKey } = req.body;
+    const response = await answerElon(message, visitorName, stage, contextData, apiKey);
+    res.json({ status: "success", reply: response.reply, source: response.source });
+  } catch (error) {
+    console.error("ELON AI Error:", error);
+    res.status(500).json({ error: "Failed to query ELON AI", details: error.message });
   }
 });
 

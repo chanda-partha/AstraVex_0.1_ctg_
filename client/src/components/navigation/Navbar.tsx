@@ -30,6 +30,7 @@ interface NavbarProps {
   onToggleAiChat: () => void;
   onOpenRegistry: () => void;
   onOpenSimulators?: () => void;
+  onEngageElon?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -42,6 +43,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleAiChat,
   onOpenRegistry,
   onOpenSimulators,
+  onEngageElon,
 }) => {
   const [isAudioMuted, setIsAudioMuted] = useState(soundFx.isMuted());
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -259,6 +261,21 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
                 )}
               </button>
+
+              {/* ELON Space Mission Guide Button */}
+              {onEngageElon && (
+                <button
+                  onClick={() => {
+                    soundFx.playChirp();
+                    onEngageElon();
+                  }}
+                  className="h-9 px-3 rounded-xl bg-gradient-to-r from-cyan-600/25 to-blue-600/25 hover:from-cyan-600/40 hover:to-blue-600/40 border border-cyan-400/40 text-cyan-200 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-all shadow-[0_0_12px_rgba(56,189,248,0.2)] cursor-pointer"
+                  title="Engage ELON - AI Space Mission Guide"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
+                  <span className="font-orbitron font-bold">ELON AI</span>
+                </button>
+              )}
 
               {/* Astra AI Copilot Button */}
               <button
