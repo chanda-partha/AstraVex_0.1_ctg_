@@ -357,6 +357,17 @@ export const ElonAssistant: React.FC<ElonAssistantProps> = ({
     }
   }, [elonState.isNamePopupOpen]);
 
+  // Auto-start ELON AI 1st welcome sequence a few seconds after user enters the project
+  useEffect(() => {
+    const autoStartTimer = setTimeout(() => {
+      if (elonConversation.getState().stage === 'idle') {
+        elonConversation.startWelcome();
+      }
+    }, 2500); // 2.5 second cinematic delay after entry
+
+    return () => clearTimeout(autoStartTimer);
+  }, []);
+
   // Handle Name Confirmation (Step 2)
   const handleConfirmName = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
