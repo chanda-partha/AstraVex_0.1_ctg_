@@ -17,7 +17,9 @@ import {
   Minimize2,
   Bot,
   Eye,
-  EyeOff
+  EyeOff,
+  GripHorizontal,
+  Move
 } from 'lucide-react';
 import { elonConversation, ElonState } from './ElonConversation';
 import { elonVoice } from './ElonVoice';
@@ -54,6 +56,140 @@ export const ElonAssistant: React.FC<ElonAssistantProps> = ({
 
   const inputRef = useRef<HTMLInputElement>(null);
   const prevStageRef = useRef(elonState.stage);
+
+  // Draggable HUD Position State
+  const [hudPos, setHudPos] = useState<{ x: number; y: number } | null>(null);
+  const [isDraggingHud, setIsDraggingHud] = useState<boolean>(false);
+  const hudRef = useRef<HTMLDivElement>(null);
+  const hudDragData = useRef<{ startX: number; startY: number; initX: number; initY: number } | null>(null);
+
+  // Draggable Floating Dock Position State
+  const [dockPos, setDockPos] = useState<{ x: number; y: number } | null>(null);
+  const [isDraggingDock, setIsDraggingDock] = useState<boolean>(false);
+  const dockRef = useRef<HTMLDivElement>(null);
+  const dockDragData = useRef<{ startX: number; startY: number; initX: number; initY: number } | null>(null);
+
+  // Pointer Handlers: Move HUD Card
+  const handleHudPointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0) return;
+    const target = e.target as HTMLElement;
+    if (target.closest('button, input, textarea, a')) return;
+
+    const el = hudRef.current;
+    if (!el) return;
+
+    const rect = el.getBoundingClientRect();
+    const currentX = hudPos ? hudPos.x : rect.left;
+    const currentY = hudPos ? hudPos.y : rect.top;
+
+    hudDragData.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initX: currentX,
+      initY: currentY,
+    };
+
+    setIsDraggingHud(true);
+    try {
+      target.setPointerCapture(e.pointerId);
+    } catch (_) {}
+  };
+
+  const handleHudPointerMove = (e: React.PointerEvent) => {
+    if (!isDraggingHud || !hudDragData.current || !hudRef.current) return;
+
+    const deltaX = e.clientX - hudDragData.current.startX;
+    const deltaY = e.clientY - hudDragData.current.startY;
+
+    const rect = hudRef.current.getBoundingClientRect();
+    const maxX = Math.max(12, window.innerWidth - rect.width - 12);
+    const maxY = Math.max(12, window.innerHeight - rect.height - 12);
+
+    const nextX = Math.max(12, Math.min(maxX, hudDragData.current.initX + deltaX));
+    const nextY = Math.max(12, Math.min(maxY, hudDragData.current.initY + deltaY));
+
+    setHudPos({ x: nextX, y: nextY });
+  };
+
+  const handleHudPointerUp = (e: React.PointerEvent) => {
+    if (!isDraggingHud) return;
+    setIsDraggingHud(false);
+    hudDragData.current = null;
+    try {
+      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch (_) {}
+  };
+
+  // Pointer Handlers: Move Dock
+  const handleDockPointerDown = (e: React.PointerEvent) => {
+    if (e.button !== 0) return;
+    const target = e.target as HTMLElement;
+    if (target.closest('input, textarea, form, select')) return;
+
+    const el = dockRef.current;
+    if (!el) return;
+
+    const rect = el.getBoundingClientRect();
+    const currentX = dockPos ? dockPos.x : rect.left;
+    const currentY = dockPos ? dockPos.y : rect.top;
+
+    dockDragData.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      initX: currentX,
+      initY: currentY,
+    };
+
+    setIsDraggingDock(true);
+    try {
+      target.setPointerCapture(e.pointerId);
+    } catch (_) {}
+  };
+
+  const handleDockPointerMove = (e: React.PointerEvent) => {
+    if (!isDraggingDock || !dockDragData.current || !dockRef.current) return;
+
+    const deltaX = e.clientX - dockDragData.current.startX;
+    const deltaY = e.clientY - dockDragData.current.startY;
+
+    const rect = dockRef.current.getBoundingClientRect();
+    const maxX = Math.max(12, window.innerWidth - rect.width - 12);
+    const maxY = Math.max(12, window.innerHeight - rect.height - 12);
+
+    const nextX = Math.max(12, Math.min(maxX, dockDragData.current.initX + deltaX));
+    const nextY = Math.max(12, Math.min(maxY, dockDragData.current.initY + deltaY));
+
+    setDockPos({ x: nextX, y: nextY });
+  };
+
+  const handleDockPointerUp = (e: React.PointerEvent) => {
+    if (!isDraggingDock) return;
+    setIsDraggingDock(false);
+    dockDragData.current = null;
+    try {
+      (e.target as HTMLElement).releasePointerCapture(e.pointerId);
+    } catch (_) {}
+  };
+
+  // Viewport resize guard to keep positions on-screen
+  useEffect(() => {
+    const handleResize = () => {
+      if (hudPos && hudRef.current) {
+        const rect = hudRef.current.getBoundingClientRect();
+        const maxX = Math.max(12, window.innerWidth - rect.width - 12);
+        const maxY = Math.max(12, window.innerHeight - rect.height - 12);
+        setHudPos((prev) => prev ? { x: Math.min(prev.x, maxX), y: Math.min(prev.y, maxY) } : null);
+      }
+      if (dockPos && dockRef.current) {
+        const rect = dockRef.current.getBoundingClientRect();
+        const maxX = Math.max(12, window.innerWidth - rect.width - 12);
+        const maxY = Math.max(12, window.innerHeight - rect.height - 12);
+        setDockPos((prev) => prev ? { x: Math.min(prev.x, maxX), y: Math.min(prev.y, maxY) } : null);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [hudPos, dockPos]);
 
   // Unhide automatically when a new stage transition begins
   useEffect(() => {
@@ -191,11 +327,38 @@ export const ElonAssistant: React.FC<ElonAssistantProps> = ({
       {/* 2. SUBTITLES & MISSION BRIEFING HUD (FLOATING BOTTOM CENTER)          */}
       {/* ═════════════════════════════════════════════════════════════════════ */}
       {elonState.subtitles && !elonState.isNamePopupOpen && !isHudHidden && (
-        <div className="fixed bottom-24 sm:bottom-20 left-1/2 -translate-x-1/2 z-30 w-full max-w-2xl px-4 pointer-events-none select-none animate-fade-in">
+        <div
+          ref={hudRef}
+          style={hudPos ? {
+            left: `${hudPos.x}px`,
+            top: `${hudPos.y}px`,
+            bottom: 'auto',
+            transform: 'none',
+            maxWidth: 'min(672px, calc(100vw - 24px))',
+            position: 'fixed'
+          } : undefined}
+          className={`fixed z-30 w-full max-w-2xl px-4 pointer-events-none select-none animate-fade-in ${
+            hudPos ? '' : 'bottom-24 sm:bottom-20 left-1/2 -translate-x-1/2'
+          }`}
+        >
           <div className="elon-subtitle-box rounded-2xl p-4 sm:p-5 pointer-events-auto shadow-2xl transition-all duration-300">
-            {/* Header: ELON Status, Waveform & Hide Button */}
-            <div className="flex items-center justify-between gap-3 pb-2 border-b border-white/[0.08] mb-2.5">
+            {/* Header: Draggable Grip Handle, ELON Status, Waveform & Hide Button */}
+            <div
+              onPointerDown={handleHudPointerDown}
+              onPointerMove={handleHudPointerMove}
+              onPointerUp={handleHudPointerUp}
+              onDoubleClick={() => setHudPos(null)}
+              className="flex items-center justify-between gap-3 pb-2 border-b border-white/[0.08] mb-2.5 cursor-grab active:cursor-grabbing select-none"
+              title="Click and drag with mouse pointer to move freely anywhere (double-click to reset position)"
+            >
               <div className="flex items-center gap-2">
+                <div
+                  className="p-1 px-1.5 rounded-lg text-cyan-400 hover:text-cyan-200 bg-white/[0.04] hover:bg-white/[0.08] border border-cyan-400/25 flex items-center gap-1 transition-colors cursor-grab active:cursor-grabbing"
+                  title="Click and drag with mouse pointer to move freely"
+                >
+                  <GripHorizontal className="w-3.5 h-3.5" />
+                  <span className="text-[9px] font-mono tracking-wider hidden sm:inline uppercase">DRAG</span>
+                </div>
                 <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(56,189,248,0.8)]" />
                 <span className="text-xs font-orbitron font-bold tracking-wider text-cyan-300 uppercase">
                   ELON · ONBOARD AI GUIDE
@@ -221,9 +384,26 @@ export const ElonAssistant: React.FC<ElonAssistantProps> = ({
                   </div>
                 )}
 
+                {/* Reset position button if moved */}
+                {hudPos && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setHudPos(null);
+                    }}
+                    className="px-2 py-1 rounded-lg bg-white/[0.03] hover:bg-white/[0.08] border border-white/10 text-slate-400 hover:text-cyan-300 text-[10px] font-mono transition-colors cursor-pointer"
+                    title="Reset to center bottom position"
+                  >
+                    RESET POS
+                  </button>
+                )}
+
                 {/* Hide / Dismiss Button */}
                 <button
-                  onClick={() => setIsHudHidden(true)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsHudHidden(true);
+                  }}
                   className="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 hover:border-cyan-400/40 text-slate-400 hover:text-cyan-200 text-[11px] font-mono tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
                   title="Hide mission briefing (click Show or ELON orb to appear again)"
                 >
@@ -304,7 +484,17 @@ export const ElonAssistant: React.FC<ElonAssistantProps> = ({
       {/* ═════════════════════════════════════════════════════════════════════ */}
       {/* 3. FLOATING ELON SPACECRAFT ORB & AUDIO DOCK (BOTTOM RIGHT)          */}
       {/* ═════════════════════════════════════════════════════════════════════ */}
-      <div className="fixed bottom-5 right-5 z-40 select-none">
+      <div
+        ref={dockRef}
+        style={dockPos ? {
+          left: `${dockPos.x}px`,
+          top: `${dockPos.y}px`,
+          right: 'auto',
+          bottom: 'auto',
+          position: 'fixed'
+        } : undefined}
+        className={`fixed z-40 select-none ${dockPos ? '' : 'bottom-5 right-5'}`}
+      >
         <div className="flex flex-col items-end gap-2.5">
 
           {/* Expanded Audio & Assistant Controls Drawer */}
@@ -450,6 +640,18 @@ export const ElonAssistant: React.FC<ElonAssistantProps> = ({
 
           {/* The Holographic AI Orb Dock */}
           <div className="flex items-center gap-2">
+
+            {/* Dock Move Drag Handle */}
+            <div
+              onPointerDown={handleDockPointerDown}
+              onPointerMove={handleDockPointerMove}
+              onPointerUp={handleDockPointerUp}
+              onDoubleClick={() => setDockPos(null)}
+              className="p-2.5 rounded-2xl bg-[#050918]/85 hover:bg-[#071128] border border-cyan-400/30 text-slate-400 hover:text-cyan-300 shadow-lg backdrop-blur-xl transition-all cursor-grab active:cursor-grabbing flex items-center justify-center select-none"
+              title="Click and drag with mouse pointer to move ELON dock anywhere (double-click to reset position)"
+            >
+              <Move className="w-4 h-4" />
+            </div>
 
             {/* Quick Audio Controls Toggle Button */}
             <button
