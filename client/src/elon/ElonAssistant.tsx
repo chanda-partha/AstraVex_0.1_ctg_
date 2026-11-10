@@ -15,7 +15,9 @@ import {
   Sliders,
   Maximize2,
   Minimize2,
-  Bot
+  Bot,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { elonConversation, ElonState } from './ElonConversation';
 import { elonVoice } from './ElonVoice';
@@ -48,8 +50,18 @@ export const ElonAssistant: React.FC<ElonAssistantProps> = ({
   const [isControlsExpanded, setIsControlsExpanded] = useState<boolean>(false);
   const [isChatExpanded, setIsChatExpanded] = useState<boolean>(false);
   const [isDockMinimized, setIsDockMinimized] = useState<boolean>(false);
+  const [isHudHidden, setIsHudHidden] = useState<boolean>(false);
 
   const inputRef = useRef<HTMLInputElement>(null);
+  const prevStageRef = useRef(elonState.stage);
+
+  // Unhide automatically when a new stage transition begins
+  useEffect(() => {
+    if (prevStageRef.current !== elonState.stage) {
+      prevStageRef.current = elonState.stage;
+      setIsHudHidden(false);
+    }
+  }, [elonState.stage]);
 
   // Subscribe to ELON conversation state
   useEffect(() => {
@@ -178,10 +190,10 @@ export const ElonAssistant: React.FC<ElonAssistantProps> = ({
       {/* ═════════════════════════════════════════════════════════════════════ */}
       {/* 2. SUBTITLES & MISSION BRIEFING HUD (FLOATING BOTTOM CENTER)          */}
       {/* ═════════════════════════════════════════════════════════════════════ */}
-      {elonState.subtitles && !elonState.isNamePopupOpen && (
-        <div className="fixed bottom-24 sm:bottom-20 left-1/2 -translate-x-1/2 z-30 w-full max-w-2xl px-4 pointer-events-none select-none">
+      {elonState.subtitles && !elonState.isNamePopupOpen && !isHudHidden && (
+        <div className="fixed bottom-24 sm:bottom-20 left-1/2 -translate-x-1/2 z-30 w-full max-w-2xl px-4 pointer-events-none select-none animate-fade-in">
           <div className="elon-subtitle-box rounded-2xl p-4 sm:p-5 pointer-events-auto shadow-2xl transition-all duration-300">
-            {/* Header: ELON Status & Waveform */}
+            {/* Header: ELON Status, Waveform & Hide Button */}
             <div className="flex items-center justify-between gap-3 pb-2 border-b border-white/[0.08] mb-2.5">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(56,189,248,0.8)]" />
@@ -195,18 +207,30 @@ export const ElonAssistant: React.FC<ElonAssistantProps> = ({
                 )}
               </div>
 
-              {/* Animated audio bars while speaking */}
-              {elonState.isSpeaking && (
-                <div className="flex items-center gap-1 h-5 px-2">
-                  <span className="audio-bar" />
-                  <span className="audio-bar" />
-                  <span className="audio-bar" />
-                  <span className="audio-bar" />
-                  <span className="audio-bar" />
-                  <span className="audio-bar" />
-                  <span className="audio-bar" />
-                </div>
-              )}
+              <div className="flex items-center gap-2">
+                {/* Animated audio bars while speaking */}
+                {elonState.isSpeaking && (
+                  <div className="flex items-center gap-1 h-5 px-2">
+                    <span className="audio-bar" />
+                    <span className="audio-bar" />
+                    <span className="audio-bar" />
+                    <span className="audio-bar" />
+                    <span className="audio-bar" />
+                    <span className="audio-bar" />
+                    <span className="audio-bar" />
+                  </div>
+                )}
+
+                {/* Hide / Dismiss Button */}
+                <button
+                  onClick={() => setIsHudHidden(true)}
+                  className="px-2.5 py-1 rounded-lg bg-white/[0.04] hover:bg-white/[0.1] border border-white/10 hover:border-cyan-400/40 text-slate-400 hover:text-cyan-200 text-[11px] font-mono tracking-wider flex items-center gap-1.5 transition-all cursor-pointer"
+                  title="Hide mission briefing (click Show or ELON orb to appear again)"
+                >
+                  <EyeOff className="w-3.5 h-3.5" />
+                  <span>HIDE</span>
+                </button>
+              </div>
             </div>
 
             {/* Subtitle Spoken Content */}
@@ -254,6 +278,26 @@ export const ElonAssistant: React.FC<ElonAssistantProps> = ({
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* 2B. RESTORE PILL (WHEN HUD IS HIDDEN) */}
+      {elonState.subtitles && !elonState.isNamePopupOpen && isHudHidden && (
+        <div className="fixed bottom-24 sm:bottom-20 left-1/2 -translate-x-1/2 z-30 pointer-events-auto select-none animate-fade-in">
+          <button
+            onClick={() => setIsHudHidden(false)}
+            className="group px-4 py-2.5 rounded-full bg-[#050918]/90 hover:bg-[#071128] border border-cyan-400/40 hover:border-cyan-300 text-cyan-200 hover:text-white shadow-[0_0_25px_rgba(56,189,248,0.35)] backdrop-blur-xl flex items-center gap-2.5 text-xs font-orbitron font-semibold tracking-wider cursor-pointer transition-all duration-200 hover:scale-105 active:scale-95"
+            title="Show mission briefing & subtitles"
+          >
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(56,189,248,0.8)]" />
+            <Eye className="w-3.5 h-3.5 text-cyan-300 group-hover:scale-110 transition-transform" />
+            <span>SHOW MISSION BRIEFING</span>
+            {elonState.showMissionOptions && (
+              <span className="px-2 py-0.5 rounded-full bg-cyan-500/20 text-[10px] font-mono text-cyan-300 border border-cyan-400/30">
+                MISSIONS
+              </span>
+            )}
+          </button>
         </div>
       )}
 
@@ -417,6 +461,21 @@ export const ElonAssistant: React.FC<ElonAssistantProps> = ({
               {audioState.isMusicMuted && <span className="text-[10px] text-rose-400 font-bold">OFF</span>}
             </button>
 
+            {/* Quick Briefing HUD Visibility Toggle Button */}
+            {elonState.subtitles && !elonState.isNamePopupOpen && (
+              <button
+                onClick={() => setIsHudHidden(!isHudHidden)}
+                className={`p-2.5 rounded-2xl border shadow-lg backdrop-blur-xl transition-all cursor-pointer flex items-center justify-center ${
+                  isHudHidden
+                    ? 'bg-cyan-500/20 text-cyan-200 border-cyan-400/50 shadow-[0_0_15px_rgba(56,189,248,0.4)]'
+                    : 'bg-[#050918]/85 hover:bg-[#071128] border-cyan-400/30 text-slate-300 hover:text-white'
+                }`}
+                title={isHudHidden ? "Show mission briefing HUD" : "Hide mission briefing HUD"}
+              >
+                {isHudHidden ? <Eye className="w-4 h-4 text-cyan-300 animate-pulse" /> : <EyeOff className="w-4 h-4" />}
+              </button>
+            )}
+
             {/* Quick Chat Toggle Button */}
             <button
               onClick={() => setIsChatExpanded(!isChatExpanded)}
@@ -429,7 +488,9 @@ export const ElonAssistant: React.FC<ElonAssistantProps> = ({
             {/* Main ELON Holographic Orb Button */}
             <button
               onClick={() => {
-                if (elonState.stage === 'idle') {
+                if (isHudHidden) {
+                  setIsHudHidden(false);
+                } else if (elonState.stage === 'idle') {
                   elonConversation.startWelcome();
                 } else if (elonState.isSpeaking) {
                   elonVoice.stop();
