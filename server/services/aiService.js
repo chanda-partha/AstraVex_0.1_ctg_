@@ -17,7 +17,7 @@ export async function generateStory(nasaData) {
       },
       {
         heading: "2. Precision Robotic Hardware",
-        content: `At the heart of this exploration is the ${hardware.name}. Designed by engineers at ${mission.agency}, its core purpose is: "${hardware.purpose}". Operating with an official NASA status of "${hardware.status}", it carries specialized scientific instruments including ${hardware.instruments ? hardware.instruments.join(', ') : 'advanced sensors'}.`
+        content: `At the heart of this exploration is the ${hardware.name}. Designed by engineers at ${mission.agency}, its core purpose is: "${hardware.purpose}". Operating with an official NASA status of "${hardware.status}", it carries specialized scientific instruments including ${Array.isArray(hardware.instruments) ? hardware.instruments.join(', ') : (hardware.instruments || 'advanced sensors')}.`
       },
       {
         heading: "3. Groundbreaking Scientific Discoveries",
@@ -31,7 +31,7 @@ export async function generateStory(nasaData) {
     funFacts: [
       `Official NASA Landing Site: ${mission.locationName} (${mission.coordinates?.lat || 0}°, ${mission.coordinates?.lon || 0}°)`,
       `Current NASA Status: ${mission.nasaConfirmedStatus}`,
-      `Key Instruments: ${hardware.instruments ? hardware.instruments.slice(0, 2).join(' & ') : 'Scientific Payload'}`
+      `Key Instruments: ${Array.isArray(hardware.instruments) ? hardware.instruments.slice(0, 2).join(' & ') : (hardware.instruments || 'Scientific Payload')}`
     ]
   };
 
@@ -179,14 +179,18 @@ async function resolveMultiFieldKnowledge(userQuery, dest, mission, hardware) {
   // -------------------------------------------------------------
   // 3. Active NASA Hardware Context
   // -------------------------------------------------------------
-  if (hardware && (processedLower.includes('hardware') || processedLower.includes('important') || processedLower.includes('purpose') || processedLower.includes(hardware.name.toLowerCase()))) {
-    return {
-      answer: `🔍 **About ${hardware.name} on ${dest}:**
+  if (hardware && (processedLower.includes('hardware') || processedLower.includes('important') || processedLower.includes('purpose') || (hardware.name && processedLower.includes(hardware.name.toLowerCase())))) {
+    const formattedInstruments = Array.isArray(hardware.instruments)
+      ? hardware.instruments.join(', ')
+      : (hardware.instruments || 'High-precision Sensors');
 
-• **Primary Purpose:** ${hardware.purpose}
-• **Scientific Capabilities:** ${hardware.scientificFunction}
-• **Instruments Onboard:** ${hardware.instruments ? hardware.instruments.join(', ') : 'High-precision Sensors'}
-• **Status:** ${hardware.status} at ${mission?.locationName || 'Landing Site'}.
+    return {
+      answer: `🔍 **About ${hardware.name || 'NASA Hardware'} on ${dest}:**
+
+• **Primary Purpose:** ${hardware.purpose || 'Exploration and scientific discovery'}
+• **Scientific Capabilities:** ${hardware.scientificFunction || 'Surface investigation'}
+• **Instruments Onboard:** ${formattedInstruments}
+• **Status:** ${hardware.status || 'Active'} at ${mission?.locationName || 'Landing Site'}.
 • **Mission Contribution:** ${mission?.scientificContribution || 'Advancing interplanetary exploration.'}`,
       source: "NASA Mission Explorer Context Engine"
     };
