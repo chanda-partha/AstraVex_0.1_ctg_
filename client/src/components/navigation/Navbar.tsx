@@ -15,7 +15,8 @@ import {
   Award,
   Globe,
   ChevronRight,
-  Gauge
+  Gauge,
+  History
 } from 'lucide-react';
 import { DestinationType, ScreenType } from '../../types';
 import { soundFx } from '../../utils/soundEffects';
@@ -30,7 +31,6 @@ interface NavbarProps {
   onToggleAiChat: () => void;
   onOpenRegistry: () => void;
   onOpenSimulators?: () => void;
-  onEngageElon?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -43,7 +43,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onToggleAiChat,
   onOpenRegistry,
   onOpenSimulators,
-  onEngageElon,
 }) => {
   const [isAudioMuted, setIsAudioMuted] = useState(soundFx.isMuted());
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -78,12 +77,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   const healthColor = health > 60 ? 'bg-cyan-400' : health > 30 ? 'bg-amber-400' : 'bg-red-400';
   const healthText = health > 60 ? 'text-cyan-400' : health > 30 ? 'text-amber-400' : 'text-red-400';
 
-  // 4-Step NASA Mission Sequence
+  // 5-Step NASA Mission Sequence
   const navItems: { screen: ScreenType; step: string; label: string; icon: React.ReactNode }[] = [
     { screen: 'home', step: '01', label: 'Overview', icon: <Globe className="w-3.5 h-3.5" /> },
     { screen: 'destination', step: '02', label: 'Destination', icon: <Compass className="w-3.5 h-3.5" /> },
     { screen: 'launch', step: '03', label: 'Earth Journey', icon: <Rocket className="w-3.5 h-3.5" /> },
     { screen: 'exploration', step: '04', label: '3D World', icon: <Sparkles className="w-3.5 h-3.5" /> },
+    { screen: 'missionAfterlife', step: '05', label: 'Afterlife', icon: <History className="w-3.5 h-3.5" /> },
   ];
 
   return (
@@ -261,21 +261,6 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </div>
                 )}
               </button>
-
-              {/* ELON Space Mission Guide Button */}
-              {onEngageElon && (
-                <button
-                  onClick={() => {
-                    soundFx.playChirp();
-                    onEngageElon();
-                  }}
-                  className="h-9 px-3 rounded-xl bg-gradient-to-r from-cyan-600/25 to-blue-600/25 hover:from-cyan-600/40 hover:to-blue-600/40 border border-cyan-400/40 text-cyan-200 hover:text-white text-xs font-medium flex items-center gap-1.5 transition-all shadow-[0_0_12px_rgba(56,189,248,0.2)] cursor-pointer"
-                  title="Engage ELON - AI Space Mission Guide"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
-                  <span className="font-orbitron font-bold">ELON AI</span>
-                </button>
-              )}
 
               {/* Astra AI Copilot Button */}
               <button

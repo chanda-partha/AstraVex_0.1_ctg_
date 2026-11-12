@@ -1,8 +1,7 @@
-# 🚀 AstraVex (NASA Mission Explorer)
+# 🚀 NASA MISSION EXPLORER
 
 > **"Explore. Discover. Learn."**  
-> *Official Competition Prototype for the NASA Space Apps Challenge 2026*  
-> 🚀 Immersive 3D space exploration web app for the NASA Space Apps Challenge 2026. Explore NASA rovers, landers & telescopes across Mars, the Moon & deep space, powered by live NASA APIs, Three.js, React 18, and Gemini AI storytelling.
+> *Official Competition Prototype for the NASA Space Apps Challenge 2026*
 
 ---
 
@@ -125,4 +124,3 @@ Open your browser to: **`http://localhost:3000`**
 
 ## 📄 License
 Public Domain / NASA Space Apps Challenge 2026 Submission.
-

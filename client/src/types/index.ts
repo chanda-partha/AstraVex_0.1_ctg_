@@ -4,7 +4,8 @@ export type ScreenType =
   | 'launch' 
   | 'landing' 
   | 'exploration' 
-  | 'registry';
+  | 'registry'
+  | 'missionAfterlife';
 
 export type DestinationType = 'Mars' | 'Moon';
 
