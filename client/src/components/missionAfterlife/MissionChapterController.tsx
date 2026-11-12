@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -6,9 +6,9 @@ import {
   Pause,
   RotateCcw,
   Sparkles,
-  Eye
-} from 'lucide-react';
-import { soundFx } from '../../utils/soundEffects';
+  Eye,
+} from "lucide-react";
+import { soundFx } from "../../utils/soundEffects";
 
 interface MissionChapterControllerProps {
   chapterIndex: number; // 0 to 3
@@ -21,7 +21,9 @@ interface MissionChapterControllerProps {
   onToggleAutoRotate: () => void;
 }
 
-export const MissionChapterController: React.FC<MissionChapterControllerProps> = ({
+export const MissionChapterController: React.FC<
+  MissionChapterControllerProps
+> = ({
   chapterIndex,
   isAutoPlay,
   autoRotate,
@@ -32,19 +34,19 @@ export const MissionChapterController: React.FC<MissionChapterControllerProps> =
   onToggleAutoRotate,
 }) => {
   // Comfortable Auto-Play timer: 14 seconds per chapter to read comfortably
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof window.setTimeout> | null>(null);
 
   useEffect(() => {
     if (isAutoPlay) {
-      timerRef.current = setTimeout(() => {
+      timerRef.current = window.setTimeout(() => {
         onNextChapter();
       }, 14000);
     } else if (timerRef.current) {
-      clearTimeout(timerRef.current);
+      window.clearTimeout(timerRef.current);
     }
 
     return () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (timerRef.current) window.clearTimeout(timerRef.current);
     };
   }, [isAutoPlay, chapterIndex, onNextChapter]);
 
@@ -87,10 +89,10 @@ export const MissionChapterController: React.FC<MissionChapterControllerProps> =
           }}
           className={`px-3 py-2 rounded-xl border flex items-center gap-1.5 cursor-pointer transition-all ${
             isAutoPlay
-              ? 'bg-cyan-500/20 border-cyan-400/50 text-cyan-200 shadow-[0_0_12px_rgba(56,189,248,0.3)]'
-              : 'bg-white/[0.04] border-white/[0.08] text-slate-400 hover:text-slate-200'
+              ? "bg-cyan-500/20 border-cyan-400/50 text-cyan-200 shadow-[0_0_12px_rgba(56,189,248,0.3)]"
+              : "bg-white/[0.04] border-white/[0.08] text-slate-400 hover:text-slate-200"
           }`}
-          title={isAutoPlay ? 'Pause Auto Play' : 'Start Auto Play'}
+          title={isAutoPlay ? "Pause Auto Play" : "Start Auto Play"}
         >
           {isAutoPlay ? (
             <>
@@ -113,8 +115,8 @@ export const MissionChapterController: React.FC<MissionChapterControllerProps> =
           }}
           className={`px-3 py-2 rounded-xl border hidden md:flex items-center gap-1.5 cursor-pointer transition-all ${
             autoRotate
-              ? 'bg-blue-600/25 border-blue-400/50 text-blue-200'
-              : 'bg-white/[0.04] border-white/[0.08] text-slate-400 hover:text-slate-200'
+              ? "bg-blue-600/25 border-blue-400/50 text-blue-200"
+              : "bg-white/[0.04] border-white/[0.08] text-slate-400 hover:text-slate-200"
           }`}
           title="Toggle 360° Spacecraft Orbit"
         >
@@ -131,7 +133,7 @@ export const MissionChapterController: React.FC<MissionChapterControllerProps> =
         }}
         className="premium-btn-primary px-5 py-2.5 rounded-xl font-display font-bold text-xs uppercase tracking-wider flex items-center gap-2 cursor-pointer shadow-glow-cyan"
       >
-        <span>{chapterIndex < 3 ? 'CONTINUE' : 'ARCHIVE MISSION'}</span>
+        <span>{chapterIndex < 3 ? "CONTINUE" : "ARCHIVE MISSION"}</span>
         <ArrowRight className="w-3.5 h-3.5" />
       </button>
     </div>
@@ -139,4 +141,3 @@ export const MissionChapterController: React.FC<MissionChapterControllerProps> =
 };
 
 export default MissionChapterController;
-

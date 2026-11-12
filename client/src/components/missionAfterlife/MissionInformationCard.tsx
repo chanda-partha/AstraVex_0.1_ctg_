@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import {
   ExternalLink,
   Image as ImageIcon,
@@ -7,24 +7,66 @@ import {
   Sparkles,
   ShieldCheck,
   ChevronDown,
-  ChevronUp
-} from 'lucide-react';
-import type { MAMissionData, MAChapterContent } from '../../types/missionAfterlife';
-import { soundFx } from '../../utils/soundEffects';
+  ChevronUp,
+} from "lucide-react";
+import type {
+  MAMissionData,
+  MAChapterContent,
+} from "../../types/missionAfterlife";
+import { soundFx } from "../../utils/soundEffects";
 
 interface MissionInformationCardProps {
   mission: MAMissionData;
   chapter: MAChapterContent;
   chapterIndex: number;
+  replayToken?: number;
 }
 
 export const MissionInformationCard: React.FC<MissionInformationCardProps> = ({
   mission,
   chapter,
   chapterIndex,
+  replayToken = 0,
 }) => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isTimelineExpanded, setIsTimelineExpanded] = useState<boolean>(true);
+  // Progressive paragraph reveal
+  const [visibleParagraphCount, setVisibleParagraphCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    let timer: number | undefined;
+
+    setVisibleParagraphCount(0);
+
+    const revealParagraph = (index: number) => {
+      if (cancelled || index >= chapter.paragraphs.length) return;
+
+      setVisibleParagraphCount(index + 1);
+
+      // Give the reader enough time to read each paragraph.
+      const readingTime = Math.min(
+        8000,
+        Math.max(3500, chapter.paragraphs[index].length * 35),
+      );
+
+      timer = window.setTimeout(() => {
+        revealParagraph(index + 1);
+      }, readingTime);
+    };
+
+    timer = window.setTimeout(() => {
+      revealParagraph(0);
+    }, 500);
+
+    return () => {
+      cancelled = true;
+
+      if (timer !== undefined) {
+        window.clearTimeout(timer);
+      }
+    };
+  }, [chapter, replayToken]);
 
   return (
     <div className="w-full max-w-lg crystal-glass p-5 sm:p-6 rounded-3xl space-y-4 max-h-[75vh] sm:max-h-[82vh] overflow-y-auto pointer-events-auto border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.6)] relative group">
@@ -36,7 +78,9 @@ export const MissionInformationCard: React.FC<MissionInformationCardProps> = ({
         <div className="flex items-center justify-between text-[10px] font-mono tracking-widest text-cyan-400 uppercase">
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-            <span>CHAPTER 0{chapterIndex + 1} • {mission.name.toUpperCase()}</span>
+            <span>
+              CHAPTER 0{chapterIndex + 1} • {mission.name.toUpperCase()}
+            </span>
           </div>
           <span className="text-slate-400">{mission.destination}</span>
         </div>
@@ -46,18 +90,22 @@ export const MissionInformationCard: React.FC<MissionInformationCardProps> = ({
         </h2>
 
         <div className="text-xs font-mono text-slate-300">
-          {chapter.title} — <span className="text-slate-400">{mission.spacecraftName}</span>
+          {chapter.title} —{" "}
+          <span className="text-slate-400">{mission.spacecraftName}</span>
         </div>
       </div>
 
       {/* ═══ 2. PROGRESSIVE PARAGRAPHS ═══ */}
       <div className="space-y-3 text-xs sm:text-sm text-slate-200 font-sans leading-relaxed content-selectable">
-        {chapter.paragraphs.map((p, idx) => (
+        {chapter.paragraphs.slice(0, visibleParagraphCount).map((p, idx) => (
           <motion.p
             key={`p-${idx}`}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: idx * 0.12 }}
+            transition={{
+              duration: 0.8,
+              ease: "easeOut",
+            }}
             className="text-slate-300"
           >
             {p}
@@ -91,7 +139,9 @@ export const MissionInformationCard: React.FC<MissionInformationCardProps> = ({
               {chapter.timeline.map((evt, idx) => (
                 <div key={idx} className="relative pl-3 space-y-0.5">
                   <div className="absolute -left-[13px] top-1.5 w-2 h-2 rounded-full bg-cyan-400 border border-slate-900" />
-                  <div className="text-[10px] text-cyan-300 font-semibold">{evt.date}</div>
+                  <div className="text-[10px] text-cyan-300 font-semibold">
+                    {evt.date}
+                  </div>
                   <div className="text-slate-300 leading-snug">{evt.event}</div>
                 </div>
               ))}
@@ -187,4 +237,3 @@ export const MissionInformationCard: React.FC<MissionInformationCardProps> = ({
 };
 
 export default MissionInformationCard;
-

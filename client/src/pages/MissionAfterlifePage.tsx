@@ -1,32 +1,32 @@
-import React, { useState, useMemo } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { Stars, OrbitControls } from '@react-three/drei';
-import * as THREE from 'three';
-import { ArrowLeft, Globe, Eye, Sparkles } from 'lucide-react';
+import React, { useState, useMemo } from "react";
+import { Canvas } from "@react-three/fiber";
+import { Stars, OrbitControls } from "@react-three/drei";
+import * as THREE from "three";
+import { ArrowLeft, Globe, Eye, Sparkles } from "lucide-react";
 import type {
   MADestination,
   MAStage,
   MAChapterId,
   MAMissionData,
-} from '../types/missionAfterlife';
+} from "../types/missionAfterlife";
 import {
   getAllAfterlifeMissions,
   getMissionsByDestination,
   getMissionById,
   getDefaultMission,
-} from '../services/missionAfterlife/missionDataService';
-import { MissionAfterlifeIntro } from '../components/missionAfterlife/MissionAfterlifeIntro';
-import { PlanetSelectionScene } from '../components/missionAfterlife/PlanetSelectionScene';
-import { MissionSelectionPanel } from '../components/missionAfterlife/MissionSelectionPanel';
-import { MissionMarker } from '../components/missionAfterlife/MissionMarker';
-import { GLBPlanet } from '../components/3d/GLBPlanet';
-import { MissionSurfaceScene } from '../components/missionAfterlife/MissionSurfaceScene';
-import { MissionProgressBar } from '../components/missionAfterlife/MissionProgressBar';
-import { MissionInformationCard } from '../components/missionAfterlife/MissionInformationCard';
-import { MissionChapterController } from '../components/missionAfterlife/MissionChapterController';
-import { MissionCompletionScreen } from '../components/missionAfterlife/MissionCompletionScreen';
-import { MissionQuizLauncher } from '../components/missionAfterlife/MissionQuizLauncher';
-import { soundFx } from '../utils/soundEffects';
+} from "../services/missionAfterlife/missionDataService";
+import { MissionAfterlifeIntro } from "../components/missionAfterlife/MissionAfterlifeIntro";
+import { PlanetSelectionScene } from "../components/missionAfterlife/PlanetSelectionScene";
+import { MissionSelectionPanel } from "../components/missionAfterlife/MissionSelectionPanel";
+import { MissionMarker } from "../components/missionAfterlife/MissionMarker";
+import { GLBPlanet } from "../components/3d/GLBPlanet";
+import { MissionSurfaceScene } from "../components/missionAfterlife/MissionSurfaceScene";
+import { MissionProgressBar } from "../components/missionAfterlife/MissionProgressBar";
+import { MissionInformationCard } from "../components/missionAfterlife/MissionInformationCard";
+import { MissionChapterController } from "../components/missionAfterlife/MissionChapterController";
+import { MissionCompletionScreen } from "../components/missionAfterlife/MissionCompletionScreen";
+import { MissionQuizLauncher } from "../components/missionAfterlife/MissionQuizLauncher";
+import { soundFx } from "../utils/soundEffects";
 
 interface MissionAfterlifePageProps {
   onReturnToHome?: () => void;
@@ -34,7 +34,12 @@ interface MissionAfterlifePageProps {
   onAddScore?: (points: number) => void;
 }
 
-const CHAPTER_KEYS: MAChapterId[] = ['identity', 'purpose', 'finalChapter', 'legacy'];
+const CHAPTER_KEYS: MAChapterId[] = [
+  "identity",
+  "purpose",
+  "finalChapter",
+  "legacy",
+];
 
 export const MissionAfterlifePage: React.FC<MissionAfterlifePageProps> = ({
   onReturnToHome,
@@ -42,10 +47,12 @@ export const MissionAfterlifePage: React.FC<MissionAfterlifePageProps> = ({
   onAddScore,
 }) => {
   // ═══ STATE MACHINE ═══
-  const [stage, setStage] = useState<MAStage>('intro');
-  const [destination, setDestination] = useState<MADestination>('Moon');
-  const [selectedMissionId, setSelectedMissionId] = useState<string>('apollo11');
+  const [stage, setStage] = useState<MAStage>("intro");
+  const [destination, setDestination] = useState<MADestination>("Moon");
+  const [selectedMissionId, setSelectedMissionId] =
+    useState<string>("apollo11");
   const [chapterIndex, setChapterIndex] = useState<number>(0);
+  const [chapterReplayToken, setChapterReplayToken] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState<boolean>(false);
   const [autoRotate, setAutoRotate] = useState<boolean>(false);
   const [isQuizOpen, setIsQuizOpen] = useState<boolean>(false);
@@ -67,7 +74,7 @@ export const MissionAfterlifePage: React.FC<MissionAfterlifePageProps> = ({
 
   // Intro -> Planet Selection
   const handleBeginFromIntro = () => {
-    setStage('planetSelect');
+    setStage("planetSelect");
   };
 
   // Planet Select -> Mission Select
@@ -75,21 +82,21 @@ export const MissionAfterlifePage: React.FC<MissionAfterlifePageProps> = ({
     setDestination(dest);
     const defaultM = getDefaultMission(dest);
     setSelectedMissionId(defaultM.id);
-    setStage('missionSelect');
+    setStage("missionSelect");
   };
 
   // Mission Selection -> Surface Transition
   const handleConfirmLaunch = () => {
     soundFx.playThrust(3.0);
     setIsTransitioning(true);
-    setStage('transition');
+    setStage("transition");
     setChapterIndex(0);
   };
 
   // Transition settles -> Documentary
   const handleTransitionComplete = () => {
     setIsTransitioning(false);
-    setStage('documentary');
+    setStage("documentary");
     soundFx.playChirp();
   };
 
@@ -101,7 +108,7 @@ export const MissionAfterlifePage: React.FC<MissionAfterlifePageProps> = ({
     } else {
       // Completed all 4 chapters -> Mission Archived screen
       soundFx.playSuccess();
-      setStage('completion');
+      setStage("completion");
       if (onAddScore) onAddScore(100);
     }
   };
@@ -123,20 +130,19 @@ export const MissionAfterlifePage: React.FC<MissionAfterlifePageProps> = ({
   const handleReplayJourney = () => {
     setChapterIndex(0);
     setIsTransitioning(true);
-    setStage('transition');
+    setStage("transition");
   };
 
   const handleReturnToPlanets = () => {
-    setStage('planetSelect');
+    setStage("planetSelect");
   };
 
   return (
     <div className="relative w-full h-screen overflow-hidden bg-[#03050c] text-slate-100 font-sans select-none">
-      
       {/* ═════════════════════════════════════════════════════════════════
           STAGE A: CINEMATIC INTRODUCTION
           ═════════════════════════════════════════════════════════════════ */}
-      {stage === 'intro' && (
+      {stage === "intro" && (
         <MissionAfterlifeIntro
           onBegin={handleBeginFromIntro}
           onSkip={handleBeginFromIntro}
@@ -146,31 +152,50 @@ export const MissionAfterlifePage: React.FC<MissionAfterlifePageProps> = ({
       {/* ═════════════════════════════════════════════════════════════════
           STAGE B: 3D PLANETARY SELECTION (Moon vs. Mars)
           ═════════════════════════════════════════════════════════════════ */}
-      {stage === 'planetSelect' && (
+      {stage === "planetSelect" && (
         <PlanetSelectionScene
           onSelectDestination={handleSelectDestination}
-          onBackToIntro={() => setStage('intro')}
+          onBackToIntro={() => setStage("intro")}
         />
       )}
 
       {/* ═════════════════════════════════════════════════════════════════
           STAGE C: MISSION SELECTION WITH 3D PLANET & MARKERS
           ═════════════════════════════════════════════════════════════════ */}
-      {stage === 'missionSelect' && (
+      {stage === "missionSelect" && (
         <div className="relative w-full h-screen overflow-hidden bg-[#04060b]">
           {/* 3D Planet with Surface Markers */}
           <div className="absolute inset-0 z-0">
             <Canvas camera={{ position: [0, 0, 5.5], fov: 45 }}>
               <ambientLight intensity={0.35} color="#0d1829" />
-              <directionalLight position={[10, 8, 8]} intensity={3.5} color="#ffffff" />
-              <directionalLight position={[-8, -4, -6]} intensity={0.7} color="#38bdf8" />
-              <Stars radius={120} depth={50} count={6000} factor={3.5} fade speed={0.4} />
+              <directionalLight
+                position={[10, 8, 8]}
+                intensity={3.5}
+                color="#ffffff"
+              />
+              <directionalLight
+                position={[-8, -4, -6]}
+                intensity={0.7}
+                color="#38bdf8"
+              />
+              <Stars
+                radius={120}
+                depth={50}
+                count={6000}
+                factor={3.5}
+                fade
+                speed={0.4}
+              />
 
               <group rotation={[0.2, 0, 0]}>
                 <GLBPlanet
-                  modelPath={destination === 'Moon' ? '/models/moon.glb' : '/models/mars.glb'}
+                  modelPath={
+                    destination === "Moon"
+                      ? "/models/moon.glb"
+                      : "/models/mars.glb"
+                  }
                   targetRadius={1.8}
-                  fallbackColor={destination === 'Moon' ? '#64748b' : '#b91c1c'}
+                  fallbackColor={destination === "Moon" ? "#64748b" : "#b91c1c"}
                   rotationSpeed={0.015}
                 />
 
@@ -187,7 +212,7 @@ export const MissionAfterlifePage: React.FC<MissionAfterlifePageProps> = ({
                       radius={1.8}
                       isSelected={mission.id === selectedMissionId}
                       onSelect={() => setSelectedMissionId(mission.id)}
-                      color={destination === 'Mars' ? '#f43f5e' : '#38bdf8'}
+                      color={destination === "Mars" ? "#f43f5e" : "#38bdf8"}
                     />
                   );
                 })}
@@ -209,7 +234,7 @@ export const MissionAfterlifePage: React.FC<MissionAfterlifePageProps> = ({
               <button
                 onClick={() => {
                   soundFx.playClick();
-                  setStage('planetSelect');
+                  setStage("planetSelect");
                 }}
                 className="crystal-glass px-4 py-2 rounded-full text-xs font-mono text-slate-300 hover:text-white flex items-center gap-2 cursor-pointer transition-all"
               >
@@ -231,7 +256,7 @@ export const MissionAfterlifePage: React.FC<MissionAfterlifePageProps> = ({
                 selectedMissionId={selectedMissionId}
                 onSelectMission={(mId) => setSelectedMissionId(mId)}
                 onConfirmLaunch={handleConfirmLaunch}
-                onBackToPlanets={() => setStage('planetSelect')}
+                onBackToPlanets={() => setStage("planetSelect")}
               />
             </div>
           </div>
@@ -241,7 +266,7 @@ export const MissionAfterlifePage: React.FC<MissionAfterlifePageProps> = ({
       {/* ═════════════════════════════════════════════════════════════════
           STAGES D, E, F: SURFACE TRANSITION & 4-CHAPTER DOCUMENTARY
           ═════════════════════════════════════════════════════════════════ */}
-      {(stage === 'transition' || stage === 'documentary') && (
+      {(stage === "transition" || stage === "documentary") && (
         <div className="relative w-full h-screen overflow-hidden bg-[#04060b]">
           {/* 3D Surface Scene with Spacecraft */}
           <MissionSurfaceScene
@@ -253,14 +278,13 @@ export const MissionAfterlifePage: React.FC<MissionAfterlifePageProps> = ({
 
           {/* Documentary UI Overlays */}
           <div className="relative z-10 w-full h-full flex flex-col justify-between p-4 sm:p-6 md:p-8 pt-20 pointer-events-none">
-            
             {/* Top Bar: Navigation + Chapter Stepper */}
             <div className="w-full flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 pointer-events-auto">
               <div className="flex items-center gap-3">
                 <button
                   onClick={() => {
                     soundFx.playClick();
-                    setStage('missionSelect');
+                    setStage("missionSelect");
                   }}
                   className="crystal-glass px-3.5 py-2 rounded-xl text-xs font-mono text-slate-300 hover:text-white flex items-center gap-2 cursor-pointer transition-all whitespace-nowrap"
                 >
@@ -269,9 +293,13 @@ export const MissionAfterlifePage: React.FC<MissionAfterlifePageProps> = ({
                 </button>
 
                 <div className="crystal-glass px-3.5 py-2 rounded-xl text-xs font-mono text-cyan-300 flex items-center gap-2 truncate">
-                  <span className="font-bold text-white">{activeMission.name}</span>
+                  <span className="font-bold text-white">
+                    {activeMission.name}
+                  </span>
                   <span className="text-white/20">|</span>
-                  <span className="text-slate-400 hidden sm:inline">{activeMission.locationName}</span>
+                  <span className="text-slate-400 hidden sm:inline">
+                    {activeMission.locationName}
+                  </span>
                 </div>
               </div>
 
@@ -291,6 +319,7 @@ export const MissionAfterlifePage: React.FC<MissionAfterlifePageProps> = ({
                 mission={activeMission}
                 chapter={activeChapter}
                 chapterIndex={chapterIndex}
+                replayToken={chapterReplayToken}
               />
             </div>
 
@@ -308,14 +337,13 @@ export const MissionAfterlifePage: React.FC<MissionAfterlifePageProps> = ({
                   onNextChapter={handleNextChapter}
                   onPrevChapter={handlePrevChapter}
                   onReplayChapter={() => {
-                    setChapterIndex(chapterIndex);
+                    setChapterReplayToken((prev) => prev + 1);
                   }}
                   onToggleAutoPlay={() => setIsAutoPlay(!isAutoPlay)}
                   onToggleAutoRotate={() => setAutoRotate(!autoRotate)}
                 />
               </div>
             </div>
-
           </div>
         </div>
       )}
@@ -323,7 +351,7 @@ export const MissionAfterlifePage: React.FC<MissionAfterlifePageProps> = ({
       {/* ═════════════════════════════════════════════════════════════════
           STAGE G: MISSION COMPLETION / ARCHIVED
           ═════════════════════════════════════════════════════════════════ */}
-      {stage === 'completion' && (
+      {stage === "completion" && (
         <MissionCompletionScreen
           mission={activeMission}
           onReplay={handleReplayJourney}
@@ -350,10 +378,8 @@ export const MissionAfterlifePage: React.FC<MissionAfterlifePageProps> = ({
           }}
         />
       )}
-
     </div>
   );
 };
 
 export default MissionAfterlifePage;
-
