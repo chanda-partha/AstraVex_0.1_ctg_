@@ -1,0 +1,74 @@
+/* 🛸 ELON — Futuristic Spacecraft AI Assistant Styles */
+
+@keyframes elonOrbPulse {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.4), inset 0 0 15px rgba(56, 189, 248, 0.3);
+  }
+  50% {
+    transform: scale(1.06);
+    box-shadow: 0 0 45px rgba(56, 189, 248, 0.75), inset 0 0 25px rgba(56, 189, 248, 0.5);
+  }
+}
+
+@keyframes elonRingRotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes audioWaveBounce {
+  0%, 100% {
+    height: 4px;
+    opacity: 0.4;
+  }
+  50% {
+    height: 18px;
+    opacity: 1;
+  }
+}
+
+.elon-orb-active {
+  animation: elonOrbPulse 2.8s ease-in-out infinite;
+}
+
+.elon-ring-active {
+  animation: elonRingRotate 12s linear infinite;
+}
+
+.audio-bar {
+  width: 3px;
+  background: linear-gradient(to top, #0284c7, #38bdf8);
+  border-radius: 9999px;
+  animation: audioWaveBounce 1.1s ease-in-out infinite;
+}
+
+.audio-bar:nth-child(1) { animation-delay: 0.05s; }
+.audio-bar:nth-child(2) { animation-delay: 0.22s; }
+.audio-bar:nth-child(3) { animation-delay: 0.45s; }
+.audio-bar:nth-child(4) { animation-delay: 0.12s; }
+.audio-bar:nth-child(5) { animation-delay: 0.35s; }
+.audio-bar:nth-child(6) { animation-delay: 0.55s; }
+.audio-bar:nth-child(7) { animation-delay: 0.18s; }
+
+/* Subtitle glass styling */
+.elon-subtitle-box {
+  background: rgba(5, 8, 20, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(56, 189, 248, 0.15);
+}
+
+/* Identification modal */
+.elon-modal-glass {
+  background: rgba(5, 9, 24, 0.94);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 30px rgba(56, 189, 248, 0.25);
+}
+

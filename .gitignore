@@ -1,0 +1,85 @@
+# ============================================================
+# NASA Mission Explorer — .gitignore
+# ============================================================
+
+# Dependencies (NEVER commit these — reinstall with npm install)
+node_modules/
+**/node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# Build outputs
+dist/
+build/
+client/dist/
+client/build/
+production/
+
+# Environment variables (KEEP SECRET — never push API keys!)
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Editor directories
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.swp
+*.swo
+*~
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Vite cache
+.vite/
+**/.vite/
+
+# Coverage
+coverage/
+*.lcov
+
+# Testing & QA
+test-results/
+playwright-report/
+.playwright-mcp/
+
+# Local GitHub web drag-and-drop bundle
+github-upload/
+
+# Archives & Temp files
+*.zip
+*.tmp
+*.temp
+tmp/
+
+# Package manager lock files (keep package-lock.json but ignore others)
+yarn.lock
+pnpm-lock.yaml
