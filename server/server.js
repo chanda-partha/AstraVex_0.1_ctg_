@@ -24,11 +24,52 @@ const configuredOrigins = (process.env.CORS_ALLOWED_ORIGIN || '')
   .filter(Boolean);
 
 function isAllowedOrigin(origin) {
+  // Allow requests with no origin (e.g. mobile apps, curl, server-to-server, or same-origin)
   if (!origin) return true;
+
+  // If no specific origins configured or wildcard specified, permit all origins
+  if (configuredOrigins.length === 0 || configuredOrigins.includes('*')) {
+    return true;
+  }
+
+  // Exact match with configured origins
   if (configuredOrigins.includes(origin)) return true;
+
+  // Localhost & 127.0.0.1 in non-production
   if (!IS_PRODUCTION && /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/i.test(origin)) {
     return true;
   }
+
+  // Check wildcards in configuredOrigins (e.g. *.onrender.com or *.vercel.app)
+  const matchesConfiguredWildcard = configuredOrigins.some((allowed) => {
+    if (allowed.startsWith('*.')) {
+      const domain = allowed.slice(2);
+      try {
+        const url = new URL(origin);
+        return url.hostname === domain || url.hostname.endsWith('.' + domain);
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  });
+  if (matchesConfiguredWildcard) return true;
+
+  // Default cloud deployment host allowances (Render, Vercel, Netlify, GitHub Pages)
+  try {
+    const url = new URL(origin);
+    if (
+      url.hostname.endsWith('.onrender.com') ||
+      url.hostname.endsWith('.vercel.app') ||
+      url.hostname.endsWith('.netlify.app') ||
+      url.hostname.endsWith('.github.io')
+    ) {
+      return true;
+    }
+  } catch {
+    // ignore parse error
+  }
+
   return false;
 }
 
@@ -40,7 +81,8 @@ app.use(
       if (isAllowedOrigin(origin)) {
         return callback(null, true);
       }
-      return callback(new Error('Origin not allowed by CORS'));
+      // Pass null, false instead of throwing Error so Express does not crash with an unhandled 500 error
+      return callback(null, false);
     },
     methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],

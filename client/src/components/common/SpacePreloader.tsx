@@ -78,15 +78,15 @@ export const SpacePreloader: React.FC<SpacePreloaderProps> = ({ onAssetsReady, o
   useEffect(() => {
     const controller = new AbortController();
     const mountTime = performance.now();
-    const MIN_VISIBLE_MS = 1650;
-    const SAFETY_TIMEOUT_MS = 14000;
+    const MIN_VISIBLE_MS = 600;
+    const SAFETY_TIMEOUT_MS = 8000;
 
     let minTimer: number | null = null;
     const skipRevealTimer = window.setTimeout(() => {
       if (!completedRef.current) {
         setShowSkipOption(true);
       }
-    }, 4200);
+    }, 1800);
 
     const safetyTimeout = window.setTimeout(() => {
       controller.abort();
